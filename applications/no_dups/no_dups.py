@@ -2,8 +2,7 @@ def no_dups(s):
     # Your code here
     num = 0
     dic = {}
-    x = s.split()
-    for word in x:
+    for word in s.split():
         if word in dic:
             continue
         else:
