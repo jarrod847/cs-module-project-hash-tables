@@ -1,110 +1,137 @@
 class HashTableEntry:
     """
-    Linked List hash table key/value pair
+    Hash Table entry, as a linked list node.
     """
+
     def __init__(self, key, value):
         self.key = key
         self.value = value
         self.next = None
 
 
-# Hash table can't have fewer than this many slots
-MIN_CAPACITY = 8
-
-
 class HashTable:
     """
     A hash table that with `capacity` buckets
     that accepts string keys
-
     Implement this.
     """
 
     def __init__(self, capacity):
-        # Your code here
-
+        self.capacity = capacity
+        self.storage = [None] * capacity
 
     def get_num_slots(self):
         """
         Return the length of the list you're using to hold the hash
         table data. (Not the number of items stored in the hash table,
         but the number of slots in the main list.)
-
         One of the tests relies on this.
-
         Implement this.
         """
         # Your code here
 
+        return len(self.storage)
 
     def get_load_factor(self):
         """
         Return the load factor for this hash table.
-
         Implement this.
         """
         # Your code here
 
-
     def fnv1(self, key):
         """
-        FNV-1 Hash, 64-bit
-
+        FNV-1 64-bit hash function
         Implement this, and/or DJB2.
         """
 
-        # Your code here
-
-
     def djb2(self, key):
         """
-        DJB2 hash, 32-bit
-
+        DJB2 32-bit hash function
         Implement this, and/or FNV-1.
         """
-        # Your code here
 
+        hash = 5381
+        for c in key:
+            hash = (hash * 33) + ord(c)
+        return hash
 
     def hash_index(self, key):
         """
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
+
+        # return self.fnv1(key) % self.capacity
         return self.djb2(key) % self.capacity
 
     def put(self, key, value):
         """
         Store the value with the given key.
-
         Hash collisions should be handled with Linked List Chaining.
-
         Implement this.
         """
-        # Your code here
 
+        key_index = self.hash_index(key)
+
+        cur_node = self.storage[key_index]
+
+        if not cur_node:
+            self.storage[key_index] = HashTableEntry(key, value)
+            return
+
+        while cur_node:
+            if cur_node.key == key:
+                cur_node.value = value
+                return
+            elif not cur_node.next:
+                cur_node.next = HashTableEntry(key, value)
+                return
+            else:
+                cur_node = cur_node.next
 
     def delete(self, key):
         """
         Remove the value stored with the given key.
-
         Print a warning if the key is not found.
-
         Implement this.
         """
-        # Your code here
 
+        key_index = self.hash_index(key)
+
+        cur_node = self.storage[key_index]
+
+        if cur_node.key == key:
+            self.storage[key_index] = cur_node.next
+            cur_node.next = None
+            return
+
+        while cur_node.next:
+            if cur_node.next.key == key:
+                delete_node = cur_node.next
+                cur_node.next = delete_node.next
+                delete_node.next = None
+                return
+            else:
+                cur_node = cur_node.next
+        return print('Key not found!')
 
     def get(self, key):
         """
         Retrieve the value stored with the given key.
-
         Returns None if the key is not found.
-
         Implement this.
         """
-        # Your code here
+        key_index = self.hash_index(key)
 
+        cur_node = self.storage[key_index]
+
+        while cur_node:
+            if cur_node.key == key:
+                return cur_node.value
+            else:
+                cur_node = cur_node.next
+        return cur_node
 
     def resize(self, new_capacity):
         """
@@ -114,7 +141,16 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        new_hashtable = HashTable(new_capacity)
+        for i in self.storage:
+            node = i
+            while node:
+                new_hashtable.put(node.key, node.value)
+                node = node.next
+        self.capacity = new_capacity
+        self.load = new_hashtable.load
+        self.storage = new_hashtable.storage
+        del new_hashtable
 
 
 if __name__ == "__main__":
@@ -133,7 +169,7 @@ if __name__ == "__main__":
     ht.put("line_11", "So rested he by the Tumtum tree")
     ht.put("line_12", "And stood awhile in thought.")
 
-    print("")
+    print()
 
     # Test storing beyond capacity
     for i in range(1, 13):
